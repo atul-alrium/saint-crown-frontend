@@ -1,31 +1,39 @@
-import React, { useEffect, useState } from 'react';
-import { ethers } from 'ethers';
+import React, { useEffect, useState } from "react";
+import { ethers } from "ethers";
+import { useWallet } from "./walletContext";
 
 const PAYPAL_CLIENT_ID =
-  'AZ4DDiSwxwMppZpjA3eSIyntaK6AVkZknXt-1aBDJ8PUydtCx4AbiRXG9lxOhYM0B8chskAb4BVEvKAB';
+  "AZ4DDiSwxwMppZpjA3eSIyntaK6AVkZknXt-1aBDJ8PUydtCx4AbiRXG9lxOhYM0B8chskAb4BVEvKAB";
 
 const PayPalConnection = () => {
   // PayPal state
   const [connected, setConnected] = useState(false);
-  const [name, setName] = useState('--');
-  const [clientId, setClientId] = useState('••••••••••••');
-  const [lastSync, setLastSync] = useState('--');
+  const [name, setName] = useState("--");
+  const [clientId, setClientId] = useState("••••••••••••");
+  const [lastSync, setLastSync] = useState("--");
 
   // MetaMask state
   const [hasMetaMask, setHasMetaMask] = useState(false);
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('-');
-  const [walletBalance, setWalletBalance] = useState('-');
-  const [walletChainId, setWalletChainId] = useState('-');
-  const [walletNetwork, setWalletNetwork] = useState('-');
-  const [downloadLink, setDownloadLink] = useState('');
+  const [downloadLink, setDownloadLink] = useState("");
   const [isFirefox, setIsFirefox] = useState(false);
+  const {
+  walletConnected,
+  setWalletConnected,
+  walletAddress,
+  setWalletAddress,
+  walletBalance,
+  setWalletBalance,
+  walletChainId,
+  setWalletChainId,
+  walletNetwork,
+  setWalletNetwork,
+  setAfd1Balance,
+} = useWallet();
 
   useEffect(() => {
-  const ua = navigator.userAgent.toLowerCase();
-  setIsFirefox(ua.includes('firefox'));
-}, []);
-
+    const ua = navigator.userAgent.toLowerCase();
+    setIsFirefox(ua.includes("firefox"));
+  }, []);
 
   useEffect(() => {
     if (window.ethereum && window.ethereum.isMetaMask) {
@@ -38,42 +46,48 @@ const PayPalConnection = () => {
 
   const detectBrowserAndSetDownloadLink = () => {
     const ua = navigator.userAgent.toLowerCase();
-    
-      if (ua.includes('firefox')) {
-        // Firefox
-        setDownloadLink('https://addons.mozilla.org/en-US/firefox/addon/ether-metamask/');
-      } else if (ua.includes('opr') || ua.includes('opera')) {
-        // Opera
-        setDownloadLink('https://addons.opera.com/en-gb/extensions/details/metamask-10/?utm_source=www.google.com');
-      } else if (ua.includes('edg')) {
-        // Edge
-        setDownloadLink('https://microsoftedge.microsoft.com/addons/detail/metamask/ejbalbakoplchlghecdalmeeeajnimhm?hl=en-US&utm_source=www.google.com');
-      } else if (ua.includes('chrome') || ua.includes('crios')) {
-        // Chrome & Brave
-        setDownloadLink('https://chrome.google.com/webstore/detail/metamask/');
-      } else {
-        // All other browsers (e.g., Safari, unknown)
-        setDownloadLink('https://metamask.io/download');
-      }
-        };
+
+    if (ua.includes("firefox")) {
+      // Firefox
+      setDownloadLink(
+        "https://addons.mozilla.org/en-US/firefox/addon/ether-metamask/"
+      );
+    } else if (ua.includes("opr") || ua.includes("opera")) {
+      // Opera
+      setDownloadLink(
+        "https://addons.opera.com/en-gb/extensions/details/metamask-10/?utm_source=www.google.com"
+      );
+    } else if (ua.includes("edg")) {
+      // Edge
+      setDownloadLink(
+        "https://microsoftedge.microsoft.com/addons/detail/metamask/ejbalbakoplchlghecdalmeeeajnimhm?hl=en-US&utm_source=www.google.com"
+      );
+    } else if (ua.includes("chrome") || ua.includes("crios")) {
+      // Chrome & Brave
+      setDownloadLink("https://chrome.google.com/webstore/detail/metamask/");
+    } else {
+      // All other browsers (e.g., Safari, unknown)
+      setDownloadLink("https://metamask.io/download");
+    }
+  };
 
   const handlePayPalConnect = () => {
-    const maskedId = '••••••••••••' + PAYPAL_CLIENT_ID.slice(-4);
-    setName('Atul Reny');
+    const maskedId = "••••••••••••" + PAYPAL_CLIENT_ID.slice(-4);
+    setName("Atul Reny");
     setClientId(maskedId);
     setLastSync(new Date().toLocaleString());
     setConnected(true);
   };
 
   const handlePayPalRefresh = () => {
-    setLastSync('Just Now');
+    setLastSync("Just Now");
   };
 
   const handlePayPalDisconnect = () => {
     setConnected(false);
-    setName('--');
-    setClientId('••••••••••••');
-    setLastSync('--');
+    setName("--");
+    setClientId("••••••••••••");
+    setLastSync("--");
   };
 
   const connectWallet = async () => {
@@ -86,26 +100,66 @@ const PayPalConnection = () => {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const account = await signer.getAddress();
-      const balanceBigInt = await provider.getBalance(account);
-      const balance = ethers.formatEther(balanceBigInt);
       const network = await provider.getNetwork();
+      console.log("Connected Network:", network);
 
-      setWalletAddress(account.slice(0, 6) + '...' + account.slice(-4));
-      setWalletBalance(balance + ' ETH');
+      // ✅ Block if not Ethereum Mainnet (chainId = 1)
+      if (network.chainId !== 1n) {
+        alert("Please switch to Ethereum Mainnet to use the wallet.");
+        return;
+      }
+
+      // ✅ AFD1 Token Info
+      const AFD1_TOKEN_ADDRESS = "0x708f9b38a3eaf316d8Fd4ae90b06817783Ed05Dd";
+      const ERC20_ABI = [
+        "function balanceOf(address) view returns (uint)",
+        "function decimals() view returns (uint8)",
+        "function symbol() view returns (string)",
+      ];
+
+      const tokenContract = new ethers.Contract(
+        AFD1_TOKEN_ADDRESS,
+        ERC20_ABI,
+        provider
+      );
+
+      // ✅ Try fetching AFD1 token data
+      let tokenBalanceRaw, decimals, symbol;
+      try {
+        tokenBalanceRaw = await tokenContract.balanceOf(account);
+        decimals = await tokenContract.decimals();
+        symbol = await tokenContract.symbol();
+      } catch (tokenError) {
+        alert(
+          "AFD1 token not found in your wallet. Please import it manually."
+        );
+        return;
+      }
+
+      const tokenBalance = Number(
+        ethers.formatUnits(tokenBalanceRaw, decimals)
+      ).toFixed(4);
+
+      // ✅ Set wallet UI state
+      setWalletAddress(account.slice(0, 6) + "..." + account.slice(-4));
       setWalletChainId(network.chainId);
       setWalletNetwork(network.name);
       setWalletConnected(true);
+      setWalletBalance(`${tokenBalance} ${symbol}`);
+      setAfd1Balance(Number(tokenBalance));
+      console.log(tokenBalance);
+      
     } catch (err) {
-      console.error('Wallet connection failed:', err);
-      alert('Failed to connect wallet.');
+      console.error("Wallet connection failed:", err);
+      alert("Failed to connect wallet.");
     }
   };
 
   const disconnectWallet = () => {
-    setWalletAddress('-');
-    setWalletBalance('-');
-    setWalletChainId('-');
-    setWalletNetwork('-');
+    setWalletAddress("-");
+    setWalletBalance("-");
+    setWalletChainId("-");
+    setWalletNetwork("-");
     setWalletConnected(false);
   };
 
@@ -125,9 +179,13 @@ const PayPalConnection = () => {
             </div>
           </div>
           <div className="wallet-status">
-            <span className={`status-dot ${walletConnected ? 'active' : ''}`}></span>
+            <span
+              className={`status-dot ${walletConnected ? "active" : ""}`}
+            ></span>
             <span className="status-text">
-              {walletConnected ? `Connected to: ${walletNetwork}` : 'Disconnected'}
+              {walletConnected
+                ? `Connected to: ${walletNetwork}`
+                : "Disconnected"}
             </span>
           </div>
         </div>
@@ -152,18 +210,21 @@ const PayPalConnection = () => {
             </div>
           </div>
 
-          <div className="flex justify-between items-center mt-1 md:mt-4" id="subtitle-container">
+          <div
+            className="flex justify-between items-center mt-1 md:mt-4"
+            id="subtitle-container"
+          >
             {hasMetaMask ? (
               <div className="wallet-actions">
                 <button
                   className="connect-button"
                   onClick={connectWallet}
                   style={{
-                    backgroundColor: walletConnected ? 'red' : '',
-                    color: 'white',
+                    backgroundColor: walletConnected ? "red" : "",
+                    color: "white",
                   }}
                 >
-                  {walletConnected ? 'Disconnect Wallet' : 'Connect Wallet'}
+                  {walletConnected ? "Disconnect Wallet" : "Connect Wallet"}
                 </button>
               </div>
             ) : (
@@ -173,7 +234,9 @@ const PayPalConnection = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <button className="download-button">⬇️ Download MetaMask</button>
+                  <button className="download-button">
+                    ⬇️ Download MetaMask
+                  </button>
                 </a>
                 <p className="warning-text">
                   The MetaMask Extension is not installed on your browser.
@@ -204,9 +267,9 @@ const PayPalConnection = () => {
             </div>
           </div>
           <div className="wallet-status">
-            <span className={`status-dot ${connected ? 'active' : ''}`}></span>
+            <span className={`status-dot ${connected ? "active" : ""}`}></span>
             <span className="status-text">
-              {connected ? 'Connected' : 'Disconnected'}
+              {connected ? "Connected" : "Disconnected"}
             </span>
           </div>
         </div>
@@ -231,13 +294,12 @@ const PayPalConnection = () => {
             <button
               className="integration-btn"
               style={{
-                backgroundColor: connected ? 'red' : '#0070ba',
-                color: 'white',
+                backgroundColor: connected ? "red" : "#0070ba",
+                color: "white",
               }}
               // onClick={connected ? handlePayPalDisconnect : handlePayPalConnect}
             >
-              
-              {connected ? 'Disconnect' : 'Connect'}
+              {connected ? "Disconnect" : "Connect"}
             </button>
             <button className="integration-btn" onClick={handlePayPalRefresh}>
               Refresh

@@ -6,16 +6,19 @@ import LoginPage from './components/LoginPage';
 import './css/styles.css';
 import './config';
 import LoginPageNew from './components/NewLogin';
+import { WalletProvider } from './components/walletContext';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/wallet" element={<WalletPage />} />
-        <Route path='/LoginPageNew' element={<LoginPageNew />}/>
-      </Routes>
-    </Router>
+   <WalletProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LoginPage />} />
+          <Route path="/wallet" element={<WalletPage />} />
+          <Route path="/LoginPageNew" element={<LoginPageNew />} />
+        </Routes>
+      </Router>
+    </WalletProvider>
   );
 }
 
