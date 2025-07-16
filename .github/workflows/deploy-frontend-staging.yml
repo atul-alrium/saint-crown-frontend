@@ -1,42 +1,50 @@
-name: Deploy Frontend to STAGING
+name: Deploy Frontend to Staging
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - '**'  # Trigger on any file change
 
 jobs:
-  deploy-frontend-staging:
+  deploy:
+    name: Deploy to EC2 (Staging)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-      - name: Build Vite App
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
         run: npm run build
 
-      - name: Zip Build Folder
-        run: cd dist && zip -r ../dist.zip .
+      - name: Zip dist folder
+        run: zip -r dist.zip dist
 
-      - name: Upload dist.zip to EC2
+      - name: Upload dist.zip to EC2 (staging)
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.STAGING_SSH_KEY }}
           source: "dist.zip"
-          target: "/tmp"
+          target: "/tmp/"
 
-      - name: SSH into EC2 and Deploy
+      - name: Deploy via SSH and unzip on server
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.STAGING_SSH_KEY }}
           script: |
-            mkdir -p ${{ secrets.FRONTEND_DEPLOY_PATH }}
-            unzip -o /tmp/dist.zip -d ${{ secrets.FRONTEND_DEPLOY_PATH }}
-            echo "Frontend deployed to staging!"
+            sudo unzip -o /tmp/dist.zip -d ${{ secrets.FRONTEND_DEPLOY_PATH }}
+            echo " Frontend deployed to staging!"
