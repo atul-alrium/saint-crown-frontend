@@ -36,7 +36,7 @@ jobs:
           source: dist.zip
           target: /home/${{ secrets.SSH_USERNAME }}/
 
-      - name: SSH into server and deploy frontend inside a folder
+      - name: SSH into server and extract dist without deleting
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.STAGING_HOST }}
@@ -44,19 +44,14 @@ jobs:
           key: ${{ secrets.STAGING_SSH_KEY }}
           script: |
             set -e
-            WORK_DIR="/home/${{ secrets.SSH_USERNAME }}"
-            FRONTEND_DEPLOY_PATH="/var/www/html/frontend"
-            TMP_DIR="${WORK_DIR}/dist_temp"
+            cd /home/${{ secrets.SSH_USERNAME }}
 
-            cd $WORK_DIR
-            echo "Unzipping build into temp folder..."
-            unzip -o dist.zip -d $TMP_DIR
+            echo "Unzipping to temporary folder..."
+            unzip -o dist.zip -d dist_temp
 
-            echo "Creating deploy folder if not exists: $FRONTEND_DEPLOY_PATH"
-            sudo mkdir -p $FRONTEND_DEPLOY_PATH
-
-            echo "Copying files into $FRONTEND_DEPLOY_PATH"
-            sudo cp -r $TMP_DIR/dist/* $FRONTEND_DEPLOY_PATH/
+            echo "Copying into /var/www/html/dist (without deleting old files)"
+            sudo mkdir -p /var/www/html/dist
+            sudo cp -r dist_temp/dist/* /var/www/html/dist/
 
             echo "Cleaning up"
-            rm -rf $TMP_DIR dist.zip
+            rm -rf dist_temp dist.zip
