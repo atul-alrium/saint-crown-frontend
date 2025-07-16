@@ -79,6 +79,9 @@ p {
   flex-direction: column;
   gap: 24px;
 }
+.wallet-body.meta-wallet {
+gap: 16px;
+}
 
 .wallet-grid {
   border: 1px solid #9c9c9cab;
@@ -122,7 +125,7 @@ p {
 .wallet-actions {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 5px;
 }
 
 .connect-button {
@@ -219,6 +222,7 @@ body {
   background: rgba(255, 255, 255, 0.95);
   padding: 20px 30px 40px;
   backdrop-filter: blur(10px);
+  gap: 30px;
 }
 
 .bank-logo {
@@ -624,7 +628,7 @@ body {
   }
   .bank-logo {
     flex-direction: column;
-    margin-top: -64px;
+    margin-top: -24px;
   }
   .bank-info h1 {
     font-size: 18px;
