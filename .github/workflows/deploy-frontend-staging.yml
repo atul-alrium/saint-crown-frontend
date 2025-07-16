@@ -1,0 +1,42 @@
+name: Deploy Frontend to STAGING
+
+on:
+  push:
+    branches: [staging]
+
+jobs:
+  deploy-frontend-staging:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Vite App
+        run: npm run build
+
+      - name: Zip Build Folder
+        run: cd dist && zip -r ../dist.zip .
+
+      - name: Upload dist.zip to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          source: "dist.zip"
+          target: "/tmp"
+
+      - name: SSH into EC2 and Deploy
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            mkdir -p ${{ secrets.FRONTEND_DEPLOY_PATH }}
+            unzip -o /tmp/dist.zip -d ${{ secrets.FRONTEND_DEPLOY_PATH }}
+            echo "Frontend deployed to staging!"
