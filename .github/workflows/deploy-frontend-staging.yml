@@ -43,6 +43,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.STAGING_SSH_KEY }}
           script: |
+            cd /home/${{ secrets.SSH_USERNAME }}
             unzip -o dist.zip -d dist
             sudo rm -rf ${{ secrets.FRONTEND_DEPLOY_PATH }}/*
             sudo mv dist/* ${{ secrets.FRONTEND_DEPLOY_PATH }}/
