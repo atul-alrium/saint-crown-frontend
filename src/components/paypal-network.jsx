@@ -190,7 +190,7 @@ const PayPalConnection = () => {
           </div>
         </div>
 
-        <div className="wallet-body">
+        <div className="wallet-body meta-wallet">
           <div className="wallet-grid">
             <div className="wallet-item wallet-addr">
               <span className="item-label">📬 Wallet Address</span>
@@ -216,6 +216,7 @@ const PayPalConnection = () => {
           >
             {hasMetaMask ? (
               <div className="wallet-actions">
+                <p class="wallet-subtitle">Please log into your MetaMask Extension prior to connecting your wallet.</p>
                 <button
                   className="connect-button"
                   onClick={connectWallet}
@@ -262,8 +263,8 @@ const PayPalConnection = () => {
               className="rounded-full size-14"
               alt="PayPal"
             />
-            <div>
-              <h2 className="wallet-title">PayPal Banking Network</h2>
+            <div className="block md:flex gap-[20px] items-center">
+              <h2 className="wallet-title">PayPal Banking Network</h2> <span class="coming-soon">COMING SOON</span>
             </div>
           </div>
           <div className="wallet-status">
@@ -291,16 +292,18 @@ const PayPalConnection = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <button
-              className="integration-btn"
+            <a
+              className="integration-btn no-underline"
               style={{
                 backgroundColor: connected ? "red" : "#0070ba",
                 color: "white",
               }}
+              target="_blank"
+              href="https://www.paypal.com/us/home"
               // onClick={connected ? handlePayPalDisconnect : handlePayPalConnect}
             >
               {connected ? "Disconnect" : "Connect"}
-            </button>
+            </a>
             <button className="integration-btn" onClick={handlePayPalRefresh}>
               Refresh
             </button>

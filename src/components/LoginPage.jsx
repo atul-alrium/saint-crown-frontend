@@ -1,29 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import TickImage from '../assets/images/tick.png'
-import logo from '../assets/images/exchange_logo.png';
-
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import TickImage from "../assets/images/tick.png";
+import logo from "../assets/images/exchange_logo.png";
+import TermsCondition from "../assets/Documents/User-agreement.pdf";
 
 const LoginPage = () => {
-  const [activeTab, setActiveTab] = useState('login');
+  const [activeTab, setActiveTab] = useState("login");
   const [alerts, setAlerts] = useState([]);
   const navigate = useNavigate();
-  
-    useEffect(() => {
+
+  const [isChecked, setIsChecked] = useState(false);
+
+  useEffect(() => {
     fetch(`${import.meta.env.VITE_BASE_URL}/api/afd1/check-auth`, {
-      method: 'GET',
-      credentials: 'include',
+      method: "GET",
+      credentials: "include",
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.authenticated) {
-          navigate('/wallet'); // ✅ Redirect using router
+          navigate("/wallet"); // ✅ Redirect using router
         }
       })
       .catch(console.error);
   }, [navigate]);
 
-  const showAlert = (message, type = 'success') => {
+  const showAlert = (message, type = "success") => {
     const id = Date.now();
     setAlerts((prev) => [...prev, { id, message, type }]);
 
@@ -32,28 +34,33 @@ const LoginPage = () => {
     }, 5000);
   };
 
+
+
   const handleLogin = async (e) => {
     e.preventDefault();
     const username = e.target.username.value;
     const password = e.target.password.value;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/afd1/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include',
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/api/afd1/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+          credentials: "include",
+        }
+      );
 
       const data = await res.json();
       if (data.success) {
-        showAlert('Login successful! Redirecting...', 'success');
-        setTimeout(() => navigate('/wallet'), 1500);
+        showAlert("Login successful! Redirecting...", "success");
+        setTimeout(() => navigate("/wallet"), 1500);
       } else {
-        showAlert(data.message || 'Login failed.', 'danger');
+        showAlert(data.message || "Login failed.", "danger");
       }
     } catch (err) {
-      showAlert('Login error. Please try again.', 'danger');
+      showAlert("Login error. Please try again.", "danger");
     }
   };
 
@@ -65,34 +72,36 @@ const LoginPage = () => {
     const confirmPassword = e.target.confirmPassword.value;
 
     if (password !== confirmPassword) {
-      showAlert('Passwords do not match.', 'danger');
+      showAlert("Passwords do not match.", "danger");
       return;
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BASE_URL}/api/afd1/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
-        credentials: 'include',
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_BASE_URL}/api/afd1/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password }),
+          credentials: "include",
+        }
+      );
 
       const data = await res.json();
       if (data.success) {
-        showAlert('Registration successful! You can now log in.', 'success');
-        setActiveTab('login');
+        showAlert("Registration successful! You can now log in.", "success");
+        setActiveTab("login");
       } else {
-        showAlert(data.error || 'Registration failed.', 'danger');
+        showAlert(data.error || "Registration failed.", "danger");
       }
     } catch (err) {
-      showAlert('Registration error.', 'danger');
+      showAlert("Registration error.", "danger");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#e5e7eb] px-4">
       <div className="flex flex-col md:flex-row w-full max-w-4xl shadow-xl rounded-3xl overflow-hidden bg-white">
-
         {/* Left Panel */}
         <div className="w-full md:w-1/2 bg-gradient-to-b from-blue-100 to-white p-8">
           <div className="rounded-xl flex items-center justify-center mx-auto mb-4">
@@ -100,16 +109,18 @@ const LoginPage = () => {
           </div>
 
           <h2 className="text-2xl font-bold text-center mb-1">
-            {activeTab === 'login' ? 'AFD1 User Portal' : 'AFD1 User Portal'}
+            {activeTab === "login" ? "AFD1 User Portal" : "AFD1 User Portal"}
           </h2>
           <p className="text-center text-gray-600 text-sm mb-6">
             Secure access to your digital treasury
           </p>
 
-          {activeTab === 'login' ? (
+          {activeTab === "login" ? (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">Username</label>
+                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">
+                  Username
+                </label>
                 <input
                   name="username"
                   type="text"
@@ -119,7 +130,9 @@ const LoginPage = () => {
                 />
               </div>
               <div>
-                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">Password</label>
+                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">
+                  Password
+                </label>
                 <input
                   name="password"
                   type="password"
@@ -129,10 +142,17 @@ const LoginPage = () => {
                 />
               </div>
 
-              <div className="flex items-center text-sm text-gray-600">
-                <input type="checkbox" className="mr-2" />
-                Remember me
-                
+              <div className="flex items-center text-sm text-gray-600 justify-between">
+                <div>
+                  <input type="checkbox" className="mr-2" />
+                  Remember me
+                </div>
+                <a
+                  className="font-medium text-blue-600 hover:underline no-underline"
+                  href="#"
+                >
+                  Forgot Password ?
+                </a>
               </div>
 
               <button
@@ -143,9 +163,9 @@ const LoginPage = () => {
               </button>
 
               <div className="text-center text-sm mt-4 text-gray-600 flex justify-center items-center gap-[15px] cursor-pointer">
-                Not yet registered?{' '}
+                Not yet registered?{" "}
                 <p
-                  onClick={() => setActiveTab('register')}
+                  onClick={() => setActiveTab("register")}
                   className="font-semibold text-blue-600 hover:underline"
                 >
                   Sign up here
@@ -155,7 +175,9 @@ const LoginPage = () => {
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
               <div>
-                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">Username</label>
+                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">
+                  Username
+                </label>
                 <input
                   name="username"
                   type="text"
@@ -165,7 +187,9 @@ const LoginPage = () => {
                 />
               </div>
               <div>
-                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">Email</label>
+                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">
+                  Email
+                </label>
                 <input
                   name="email"
                   type="email"
@@ -175,7 +199,9 @@ const LoginPage = () => {
                 />
               </div>
               <div>
-                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">Password</label>
+                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">
+                  Password
+                </label>
                 <input
                   name="password"
                   type="password"
@@ -185,7 +211,9 @@ const LoginPage = () => {
                 />
               </div>
               <div>
-                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">Confirm Password</label>
+                <label className="block pb-1 pl-1 text-left text-sm text-gray-700">
+                  Confirm Password
+                </label>
                 <input
                   name="confirmPassword"
                   type="password"
@@ -195,10 +223,26 @@ const LoginPage = () => {
                 />
               </div>
 
-              <div className="flex items-start text-sm text-gray-600">
-                <input type="checkbox" className="mr-2 mt-1" required />
-                I agree to the Terms and Conditions
-              </div>
+              <div>
+  <div className="flex items-start text-sm text-gray-600 mt-4">
+    <input
+      type="checkbox"
+      className="mr-2 mt-1"
+      required
+      checked={isChecked}
+      onChange={(e) => setIsChecked(e.target.checked)}
+    />
+    <span>
+      I have read the{" "}
+      <span
+        onClick={() => window.open(TermsCondition, "_blank")}
+        className="text-blue-600 no-underline cursor-pointer hover:text-blue-800"
+      >
+        user agreement
+      </span>
+    </span>
+  </div>
+</div>
 
               <button
                 type="submit"
@@ -208,9 +252,9 @@ const LoginPage = () => {
               </button>
 
               <div className="text-center text-sm mt-4 text-gray-600 flex justify-center items-center gap-[15px] cursor-pointer">
-                Already have an account?{' '}
+                Already have an account?{" "}
                 <p
-                  onClick={() => setActiveTab('login')}
+                  onClick={() => setActiveTab("login")}
                   className="font-semibold text-blue-600 hover:underline"
                 >
                   Login here
@@ -222,13 +266,29 @@ const LoginPage = () => {
 
         {/* Right Panel */}
         <div className="md:flex flex-col justify-center w-full md:w-1/2 bg-gradient-to-b from-white to-blue-100 text-black p-8">
-          <h2 className="text-3xl font-semibold mb-2">Welcome to AFD1 User Platform</h2>
-          <p className="mb-4 text-base">Manage your digital assets securely with blockchain technology</p>
+          <h2 className="text-3xl font-semibold mb-2">
+            Welcome to AFD1 User Platform
+          </h2>
+          <p className="mb-4 text-base">
+            Manage your digital assets securely with blockchain technology
+          </p>
           <ul className="list-disc list-inside space-y-1 text-sm p-0">
-            <li className='text-base flex gap-[10px] items-center'><img width={17} src={TickImage}/>Multi-blockchain support</li>
-            <li className='text-base flex gap-[10px] items-center'><img width={17} src={TickImage}/>Institutional-grade security</li>
-            <li className='text-base flex gap-[10px] items-center'><img width={17} src={TickImage}/>Seamless wallet synchronization</li>
-            <li className='text-base flex gap-[10px] items-center'><img width={17} src={TickImage}/>Real-time transaction monitoring</li>
+            <li className="text-base flex gap-[10px] items-center">
+              <img width={17} src={TickImage} />
+              Multi-blockchain support
+            </li>
+            <li className="text-base flex gap-[10px] items-center">
+              <img width={17} src={TickImage} />
+              Institutional-grade security
+            </li>
+            <li className="text-base flex gap-[10px] items-center">
+              <img width={17} src={TickImage} />
+              Seamless wallet synchronization
+            </li>
+            <li className="text-base flex gap-[10px] items-center">
+              <img width={17} src={TickImage} />
+              Real-time transaction monitoring
+            </li>
           </ul>
         </div>
       </div>
@@ -238,13 +298,23 @@ const LoginPage = () => {
         {alerts.map((a) => (
           <div
             key={a.id}
-            className={`bg-${a.type === 'danger' ? 'red' : 'green'}-100 border-l-4 border-${a.type === 'danger' ? 'red' : 'green'}-500 text-${a.type === 'danger' ? 'red' : 'green'}-700 p-4 rounded shadow-md`}
+            className={`bg-${
+              a.type === "danger" ? "red" : "green"
+            }-100 border-l-4 border-${
+              a.type === "danger" ? "red" : "green"
+            }-500 text-${
+              a.type === "danger" ? "red" : "green"
+            }-700 p-1 rounded`}
           >
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-[10px]">
               <span>{a.message}</span>
-              <button onClick={() => setAlerts((prev) => prev.filter((al) => al.id !== a.id))}>
-                ✖️
-              </button>
+              <a className="p-2 pl-3 text-bold cursor-pointer no-underline text-[25px] text-black mt-[-3px]"
+                onClick={() =>
+                  setAlerts((prev) => prev.filter((al) => al.id !== a.id))
+                }
+              >
+                x
+              </a>
             </div>
           </div>
         ))}
