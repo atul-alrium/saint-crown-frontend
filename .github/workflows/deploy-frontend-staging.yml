@@ -36,40 +36,27 @@ jobs:
           source: dist.zip
           target: /home/${{ secrets.SSH_USERNAME }}/
 
-      - name: SSH into server and safely deploy
+      - name: SSH into server and deploy frontend inside a folder
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.STAGING_SSH_KEY }}
           script: |
-            set -e  # Stop script on any error
-
-            # Define vars
+            set -e
             WORK_DIR="/home/${{ secrets.SSH_USERNAME }}"
-            DEPLOY_DIR="${{ secrets.FRONTEND_DEPLOY_PATH }}"
-            BACKUP_DIR="${DEPLOY_DIR}_bak_$(date +%Y%m%d_%H%M%S)"
+            FRONTEND_DEPLOY_PATH="/var/www/html/frontend"
             TMP_DIR="${WORK_DIR}/dist_temp"
 
-            # Prepare
             cd $WORK_DIR
-            echo "Unzipping new build..."
+            echo "Unzipping build into temp folder..."
             unzip -o dist.zip -d $TMP_DIR
 
-            # Backup existing deployment
-            if [ -d "$DEPLOY_DIR" ]; then
-              echo "Backing up current deployment to $BACKUP_DIR"
-              sudo cp -r $DEPLOY_DIR $BACKUP_DIR
-            fi
+            echo "Creating deploy folder if not exists: $FRONTEND_DEPLOY_PATH"
+            sudo mkdir -p $FRONTEND_DEPLOY_PATH
 
-            # Deploy new build
-            echo "Deploying new build to $DEPLOY_DIR"
-            sudo rm -rf $DEPLOY_DIR/*
-            sudo mv $TMP_DIR/dist/* $DEPLOY_DIR/
+            echo "Copying files into $FRONTEND_DEPLOY_PATH"
+            sudo cp -r $TMP_DIR/dist/* $FRONTEND_DEPLOY_PATH/
 
-            # Cleanup
+            echo "Cleaning up"
             rm -rf $TMP_DIR dist.zip
-
-            # (Optional) Reload NGINX if needed
-            # echo "Reloading NGINX..."
-            # sudo systemctl reload nginx
