@@ -16,8 +16,10 @@ import SwapIcon from '../assets/images/icons/swap.png';
 import SellIcon from '../assets/images/icons/sell.png';
 import BridgeIcon from '../assets/images/icons/bridge.png';
 import FloatingHelpButton from "./RecordsAndDoc";
+import { useAuthWatcher } from "./authWatcher";
 
 const WalletPage = () => {
+   useAuthWatcher();
   const [modal, setModal] = useState(null);
   const [bottomMessage, setBottomMessage] = useState(null);
 

@@ -7,8 +7,10 @@ import './css/styles.css';
 import './config';
 import LoginPageNew from './components/NewLogin';
 import { WalletProvider } from './components/walletContext';
+import { useAuthWatcher } from'./components/authWatcher'
 
 function App() {
+ 
   return (
    <WalletProvider>
       <Router>
