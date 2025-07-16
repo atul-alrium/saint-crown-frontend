@@ -12,7 +12,7 @@ const PortfolioBalance = () => {
   const [tokenPrice, setTokenPrice] = useState(null);
   const [priceChange, setPriceChange] = useState("+0.1%"); // Static for now
   const [error, setError] = useState(null);
-  const { afd1Balance, walletBalanceFormatted,setWalletBalanceFormatted } = useWallet();
+  const { afd1Balance, walletBalanceFormatted,setWalletBalanceFormatted,connectWallet1 } = useWallet();
   const afd1USDValue =
     afd1Balance && tokenPrice
       ? (afd1Balance * parseFloat(tokenPrice)).toFixed(2)
@@ -22,8 +22,7 @@ const PortfolioBalance = () => {
     console.log("Updated afd1Balance:", afd1Balance);
     console.log("Updated walletBalanceFormatted:", walletBalanceFormatted);
   }, [afd1Balance, walletBalanceFormatted]);
-  useEffect(() => {
-    const fetchGoldPrice = async () => {
+  const fetchGoldPrice = async () => {
       try {
         const response = await fetch(
           "https://api.coingecko.com/api/v3/simple/price?vs_currencies=usd&ids=tether-gold",
@@ -46,11 +45,16 @@ const PortfolioBalance = () => {
         setError("Unable to fetch live price.");
       }
     };
-
-    fetchGoldPrice();
+  useEffect(() => {
+        fetchGoldPrice();
   }, []);
-  const loadAccountData = () => {
-    console.log("Refresh clicked. Implement loadAccountData logic.");
+  const loadAccountData = async () => {
+    setGoldPrice(0);
+    setTokenPrice(0);
+
+    console.log("🔄 Refreshing wallet and price data...");
+    await connectWallet1();
+    await fetchGoldPrice();
   };
 
   return (

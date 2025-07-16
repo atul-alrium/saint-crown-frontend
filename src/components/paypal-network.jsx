@@ -28,6 +28,7 @@ const PayPalConnection = () => {
   walletNetwork,
   setWalletNetwork,
   setAfd1Balance,
+  connectWallet1
 } = useWallet();
 
   useEffect(() => {
@@ -96,63 +97,7 @@ const PayPalConnection = () => {
       return;
     }
 
-    try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const account = await signer.getAddress();
-      const network = await provider.getNetwork();
-      console.log("Connected Network:", network);
-
-      // ✅ Block if not Ethereum Mainnet (chainId = 1)
-      if (network.chainId !== 1n) {
-        alert("Please switch to Ethereum Mainnet to use the wallet.");
-        return;
-      }
-
-      // ✅ AFD1 Token Info
-      const AFD1_TOKEN_ADDRESS = "0x708f9b38a3eaf316d8Fd4ae90b06817783Ed05Dd";
-      const ERC20_ABI = [
-        "function balanceOf(address) view returns (uint)",
-        "function decimals() view returns (uint8)",
-        "function symbol() view returns (string)",
-      ];
-
-      const tokenContract = new ethers.Contract(
-        AFD1_TOKEN_ADDRESS,
-        ERC20_ABI,
-        provider
-      );
-
-      // ✅ Try fetching AFD1 token data
-      let tokenBalanceRaw, decimals, symbol;
-      try {
-        tokenBalanceRaw = await tokenContract.balanceOf(account);
-        decimals = await tokenContract.decimals();
-        symbol = await tokenContract.symbol();
-      } catch (tokenError) {
-        alert(
-          "AFD1 token not found in your wallet. Please import it manually."
-        );
-        return;
-      }
-
-      const tokenBalance = Number(
-        ethers.formatUnits(tokenBalanceRaw, decimals)
-      ).toFixed(4);
-
-      // ✅ Set wallet UI state
-      setWalletAddress(account.slice(0, 6) + "..." + account.slice(-4));
-      setWalletChainId(network.chainId);
-      setWalletNetwork(network.name);
-      setWalletConnected(true);
-      setWalletBalance(`${tokenBalance} ${symbol}`);
-      setAfd1Balance(Number(tokenBalance));
-      console.log(tokenBalance);
-      
-    } catch (err) {
-      console.error("Wallet connection failed:", err);
-      alert("Failed to connect wallet.");
-    }
+     await connectWallet1(); 
   };
 
   const disconnectWallet = () => {
