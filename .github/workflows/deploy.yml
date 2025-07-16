@@ -1,0 +1,49 @@
+name: Deploy Frontend to EC2
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      EC2_HOST: ${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_HOST || secrets.STAGING_HOST }}
+      SSH_KEY: ${{ github.ref == 'refs/heads/main' && secrets.PROD_SSH_KEY || secrets.STAGING_SSH_KEY }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Frontend
+        run: npm run build
+
+      - name: Zip Build Files
+        run: |
+          cd dist
+          zip -r ../dist.zip .
+
+      - name: Upload Zip to EC2
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ env.SSH_KEY }}
+          source: "dist.zip"
+          target: "/tmp"
+
+      - name: SSH & Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ env.EC2_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ env.SSH_KEY }}
+          script: |
+            mkdir -p ${{ secrets.FRONTEND_DEPLOY_PATH }}
+            unzip -o /tmp/dist.zip -d ${{ secrets.FRONTEND_DEPLOY_PATH }}
